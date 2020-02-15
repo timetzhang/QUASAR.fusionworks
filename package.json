@@ -1,0 +1,32 @@
+{
+  "name": "quasar.fusionworks",
+  "version": "0.0.1",
+  "description": "A Quasar Framework app",
+  "productName": "fusionworks",
+  "cordovaId": "org.cordova.quasar.app",
+  "capacitorId": "",
+  "author": "timetzhang <367271@qq.com>",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.0.0",
+    "axios": "^0.18.1",
+    "quasar": "^1.0.0",
+    "graphql": "^14.6.0",
+    "graphql-tag": "^2.10.1",
+    "image-conversion": "^1.1.9"
+  },
+  "devDependencies": {
+    "@quasar/app": "^1.0.0"
+  },
+  "engines": {
+    "node": ">= 10.18.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  },
+  "browserslist": [
+    "last 1 version, not dead, ie >= 11"
+  ]
+}
