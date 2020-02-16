@@ -85,7 +85,7 @@ export default {
         .onOk(result => {
           this.$refs.editor.runCmd(
             "insertHTML",
-            "<img src='" + result.result + "' />"
+            "<img style='width:100%' src='" + result.result + "' />"
           );
         });
     }

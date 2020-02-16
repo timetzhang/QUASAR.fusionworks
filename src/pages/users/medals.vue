@@ -1,18 +1,70 @@
 <template>
-  <div class="q-pa-md">
-    <q-pull-to-refresh @refresh="refresh">
-      <div class="text-h5" style="margin-bottom:10px">
-        <q-icon name="verified_user" /> 我获得的成就
+  <div>
+    <div class="text-h5" style="margin-bottom:10px">
+      <q-icon name="verified_user" /> 我获得的成就
+    </div>
+    <div class="row q-col-gutter-sm">
+      <div class="col-lg-3 col-sm-4 col-xs-6" v-for="(item, index) in medals">
+        <q-card class="my-card">
+          <q-card-section class="text-center" style="height:120px">
+            <img
+              :class="item.archieved ? 'animated flip' : ''"
+              :src="item.image"
+              style="max-width:100px;"
+              :style="item.archieved ? '' : 'filter:grayscale(1)'"
+            />
+          </q-card-section>
+          <q-card-section>
+            <div class="text-subtitle1 text-center">{{ item.name }}</div>
+          </q-card-section>
+        </q-card>
       </div>
-    </q-pull-to-refresh>
+    </div>
+    <q-dialog v-model="dialog"
+      ><q-card class="q-dialog-plugin">
+        <q-bar>
+          <div>祝贺</div>
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
+          </q-btn>
+        </q-bar>
+        <q-card-section>
+          <div class="text-subtitle2 text-center text-grey-5">
+            获得了新的成就
+          </div>
+        </q-card-section>
+        <q-card-section>
+          <div class="text-h6 text-center">
+            {{ newMedals[newMedals.length - 1].name }}
+          </div>
+        </q-card-section>
+        <q-card-section class="text-center">
+          <q-img
+            :src="newMedals[newMedals.length - 1].image"
+            spinner-color="white"
+            style="max-width:100px;"
+          ></q-img>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="是的"
+            color="primary"
+            v-close-popup
+            @click="showMedal"
+          />
+        </q-card-actions> </q-card
+    ></q-dialog>
   </div>
 </template>
 
 <script>
-import dbWorks from "controller/dbWorks";
+import dbMedals from "controller/dbMedals";
+import dbUserMedals from "controller/dbUserMedals";
 import login from "utils/login";
 import { QSpinnerGears } from "quasar";
-
+import gql from "graphql-tag";
 export default {
   name: "medals",
 
@@ -20,31 +72,14 @@ export default {
 
   data() {
     return {
-      pagenum: 1,
-      pagesize: 10,
-      courses: [],
-      selectedCourse: {
-        label: "所有",
-        value: 0
-      },
-      workFavs: [],
-      workFavsFiltered: [
+      newMedals: [
         {
-          id: "",
-          createdAt: "",
-
-          work: {
-            id: "",
-            name: "",
-            assignment: {
-              name: "",
-              course: {
-                name: ""
-              }
-            }
-          }
+          name: "",
+          image: ""
         }
       ],
+      dialog: false,
+      medals: [],
       user: {}
     };
   },
@@ -57,10 +92,6 @@ export default {
     }
   },
   methods: {
-    async refresh(done) {
-      await this.init();
-      done();
-    },
     async init() {
       /* Loading begins */
       this.$q.loading.show({
@@ -71,66 +102,44 @@ export default {
 
       this.user = JSON.parse(localStorage.getItem("user"));
 
-      let data = await dbWorks.userWorkFavs({
-        userId: this.user.id,
-        pagenum: this.pagenum,
-        pagesize: this.pagesize
+      this.medals = await dbMedals.medals({
+        usertypeId: this.user.usertype.id,
+        userId: this.user.id
       });
 
-      if (data.length > 0) {
-        //将第一张图片提取出来
-        data.forEach(item => {
-          item.work.details.replace(
-            /<img [^>]*src=['"]([^'"]+)[^>]*>/,
-            function(match, capture) {
-              if (capture) {
-                item.work.image = capture;
-              } else {
-                item.work.image = "https://cdn.quasar.dev/img/parallax2.jpg";
-              }
+      this.medals.forEach(async item => {
+        if (!item.archieved) {
+          var res = await this.$http.post(this.$config.graphQLHost, {
+            query: item.content,
+            variables: {
+              userId: this.user.id
             }
-          );
+          });
+          var keys = Object.keys(res.data.data);
+          var content = res.data.data[keys[0]];
 
-          this.workFavs.push(item);
-        });
-      } else {
-        this.workFavs = [];
-      }
-
-      //将所有 works 显示
-      this.workFavsFiltered = this.workFavs;
-
-      //查询 Works 里有哪一些 Courses, 用来做 Course Filter
-      var groups = [];
-      this.workFavs.forEach(item => {
-        const group = item.work.assignment.course.name;
-        groups[group] = item.work.assignment.course.id;
-      });
-      this.courses = [];
-      this.courses.push({
-        value: 0,
-        label: "所有"
-      });
-      Object.keys(groups).forEach((item, index) => {
-        this.courses.push({
-          value: Object.values(groups)[index],
-          label: item
-        });
+          var val = eval("()=>{" + item.condition + "}");
+          if (val()) {
+            const create = await dbUserMedals.createUserMedal({
+              userId: this.user.id,
+              medalId: item.id
+            });
+            if (create) {
+              //动画
+              this.newMedals.push(item);
+              this.dialog = true;
+            }
+          }
+        }
       });
 
       /* Loading finished */
       this.$q.loading.hide();
     },
-    filterWorks() {
-      this.workFavsFiltered = this.workFavs.filter(item => {
-        return item.work.assignment.course.id
-          .toString()
-          .match(this.selectedCourse == 0 ? /[0-9]/ : this.selectedCourse);
+    showMedal() {
+      this.newMedals.forEach(item => {
+        item.archieved = true;
       });
-    },
-    load(index, done) {
-      //this.pagenum++;
-      done();
     }
   }
 };
