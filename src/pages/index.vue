@@ -55,8 +55,8 @@ export default {
     },
     async loadMore() {
       var data = await dbWorks.works({
-        pagenum: this.curPageNum,
-        pagesize: 3
+        pageNum: this.curPageNum,
+        pageSize: 3
       });
 
       if (data.length > 0) {

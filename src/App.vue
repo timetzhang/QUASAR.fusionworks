@@ -1,6 +1,6 @@
 <template>
   <div id="q-app">
-    <q-layout view="hHh lpR fFf">
+    <q-layout view="hHh Lpr lff">
       <q-header class="bg-primary text-white" height-hint="98">
         <q-toolbar flat>
           <q-btn flat round icon="menu" @click="left = !left" />

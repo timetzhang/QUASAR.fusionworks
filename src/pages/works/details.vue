@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="margin-bottom: 200px">
     <div class="row">
       <div class="col-md-6 col-xs-12">
         <q-item>
@@ -48,6 +48,67 @@
       v-html="work.details"
       style="margin-top:-10px;line-height: 1.4rem"
     ></div>
+    <div class="q-pa-md text-center">
+      <q-input
+        v-model="comment.details"
+        label="请输入您的评论"
+        autogrow
+        type="textarea"
+        ref="commentEditor"
+        :rules="[val => !!val.trim() || '内容不能为空']"
+      />
+      <br />
+      <q-btn
+        outline
+        color="primary"
+        label="提 交"
+        icon="send"
+        size="18px"
+        class="q-px-xl q-py-xs"
+        @click="submitComment"
+      />
+    </div>
+    <q-list borderless class="rounded-borders">
+      <q-item-label header>评 论</q-item-label>
+      <q-infinite-scroll @load="loadComments" :offset="250">
+        <div v-for="(item, index) in comments" :key="index">
+          <q-item>
+            <q-item-section avatar>
+              <q-avatar>
+                <img
+                  :src="
+                    item.user.headImage
+                      ? item.user.headImage
+                      : 'https://cdn.quasar.dev/img/boy-avatar.png'
+                  "
+                />
+              </q-avatar>
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label lines="1">{{ item.user.name }}</q-item-label>
+              <q-item-label caption>
+                {{ item.details }}
+              </q-item-label>
+            </q-item-section>
+
+            <q-item-section side top>
+              {{ $datetime.getTimeleft(item.createdAt) }}
+            </q-item-section>
+          </q-item>
+
+          <q-separator inset="item" />
+        </div>
+        <template v-slot:loading>
+          <div v-if="moreComments" class="row justify-center q-my-md">
+            <q-spinner-dots color="primary" size="40px" />
+          </div>
+          <div v-if="!moreComments" class="text-caption text-center q-my-md">
+            没有更多评论了
+          </div>
+        </template>
+      </q-infinite-scroll>
+    </q-list>
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
       <div>
         <q-btn
@@ -90,6 +151,7 @@
 
 <script>
 import dbWorks from "controller/dbWorks";
+import dbWorkComments from "controller/dbWorkComments";
 import login from "utils/login";
 import { QSpinnerGears } from "quasar";
 // @ is an alias to /src
@@ -101,6 +163,16 @@ export default {
       likeLabel: "",
       favDisable: false,
       favLabel: "",
+
+      //Comment Page
+      pageSize: 10,
+      pageNum: 1,
+      comments: [],
+      moreComments: true,
+      comment: {
+        details: ""
+      },
+
       work: {
         user: {
           id: 0,
@@ -259,6 +331,50 @@ export default {
         /* Loading finished */
         this.$q.loading.hide();
       }
+    },
+    async submitComment() {
+      if (this.$refs.commentEditor.validate()) {
+        var data = await dbWorkComments.createWorkComment({
+          workId: this.$route.params.id,
+          userId: JSON.parse(localStorage.getItem("user")).id,
+          details: this.comment.details
+        });
+        if (data) {
+          this.$q.notify({
+            message: "提交成功",
+            icon: "done",
+            classes: "notify"
+          });
+          this.comments = []; //可造成触发loadComments
+          this.loadComments();
+          this.moreComments = true;
+          this.pageNum = 1;
+          this.comment.details = "";
+          setTimeout(() => {
+            this.$refs.commentEditor.resetValidation();
+          }, 10);
+        }
+      }
+    },
+    loadComments(index, done) {
+      setTimeout(async () => {
+        if (this.moreComments) {
+          const data = await dbWorkComments.workComments({
+            workId: this.$route.params.id,
+            pageSize: this.pageSize,
+            pageNum: this.pageNum
+          });
+          if (data.length) {
+            this.pageNum++;
+            data.forEach(item => {
+              this.comments.push(item);
+            });
+            done();
+          } else {
+            this.moreComments = false;
+          }
+        }
+      }, 50);
     }
   }
 };

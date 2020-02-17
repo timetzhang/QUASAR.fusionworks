@@ -12,8 +12,8 @@ var query = {
     return new Promise((resolve, reject) => {
       var queryString = ""; //查询字段
       queryString = gql`
-        query($pagesize: Int!, $pagenum: Int!) {
-          works(pagesize: $pagesize, pagenum: $pagenum) {
+        query($pageSize: Int!, $pageNum: Int!) {
+          works(pageSize: $pageSize, pageNum: $pageNum) {
             id
             name
             details
@@ -337,11 +337,11 @@ var query = {
     return new Promise((resolve, reject) => {
       var queryString = ""; //查询字段
       queryString = gql`
-        query($userId: Int!, $pagesize: Int!, $pagenum: Int!) {
+        query($userId: Int!, $pageSize: Int!, $pageNum: Int!) {
           userWorkFavs(
             userId: $userId
-            pagesize: $pagesize
-            pagenum: $pagenum
+            pageSize: $pageSize
+            pageNum: $pageNum
           ) {
             work {
               id

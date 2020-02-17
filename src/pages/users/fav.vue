@@ -95,8 +95,8 @@ export default {
 
   data() {
     return {
-      pagenum: 1,
-      pagesize: 10,
+      pageNum: 1,
+      pageSize: 10,
       courses: [],
       selectedCourse: {
         label: "所有",
@@ -148,8 +148,8 @@ export default {
 
       let data = await dbWorks.userWorkFavs({
         userId: this.user.id,
-        pagenum: this.pagenum,
-        pagesize: this.pagesize
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
       });
 
       if (data.length > 0) {
