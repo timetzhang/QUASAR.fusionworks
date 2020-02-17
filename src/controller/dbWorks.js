@@ -53,6 +53,60 @@ var query = {
   },
 
   /**
+   * Query "Works" list, specially for page "Discover".
+   *
+   *@param {JSON}[variables] {pagesize: 每页大小, pagenum: 第几页}
+   *@return {Array} works list
+   */
+  followedUserWorks: variables => {
+    return new Promise((resolve, reject) => {
+      var queryString = ""; //查询字段
+      queryString = gql`
+        query($userId: Int, $pageSize: Int!, $pageNum: Int!) {
+          followedUserWorks(
+            userId: $userId
+            pageSize: $pageSize
+            pageNum: $pageNum
+          ) {
+            id
+            name
+            details
+            createdAt
+            updatedAt
+            assignment {
+              course {
+                name
+              }
+            }
+            user {
+              name
+            }
+          }
+        }
+      `.loc.source.body;
+
+      Vue.prototype.$http
+        .post(Vue.prototype.$config.graphQLHost, {
+          query: queryString,
+          variables: variables
+        })
+        .then(res => {
+          if (res.data.errors) {
+            reject(Vue.prototype.$error.format(res.data.errors).message);
+          }
+          if (res.data.data.followedUserWorks) {
+            resolve(res.data.data.followedUserWorks);
+          } else {
+            resolve(0);
+          }
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  },
+
+  /**
    * 查询某一个作业详情.
    *
    *@param {JSON}[variables] {id: Work ID, userId: User ID}
