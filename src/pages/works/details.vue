@@ -65,7 +65,6 @@
             color: {
               tip: '选择颜色',
               icon: 'format_color_text',
-              label: '颜色',
               handler: () => {
                 dialogColor = true;
               }
