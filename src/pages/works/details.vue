@@ -48,16 +48,51 @@
       v-html="work.details"
       style="margin-top:-10px;line-height: 1.4rem"
     ></div>
-    <div class="q-pa-md text-center">
-      <q-input
+
+    <div class="q-pa-md text-subtitle2">发表评论</div>
+    <div class="q-pa-md">
+      <q-field
+        ref="commentEditorField"
         v-model="comment.details"
-        label="请输入您的评论"
-        autogrow
-        type="textarea"
-        ref="commentEditor"
-        :rules="[val => !!val.trim() || '内容不能为空']"
-      />
-      <br />
+        :rules="[val => !!val || '内容不能为空']"
+        no-error-icon
+        color="grey-7"
+      >
+        <q-editor
+          ref="commentEditor"
+          v-model="comment.details"
+          :definitions="{
+            color: {
+              tip: '选择颜色',
+              icon: 'format_color_text',
+              label: '颜色',
+              handler: () => {
+                dialogColor = true;
+              }
+            }
+          }"
+          :toolbar="[['bold', 'italic', 'strike', 'underline', 'color']]"
+          style="width:100%;"
+        />
+      </q-field>
+      <q-dialog v-model="dialogColor">
+        <q-card>
+          <q-card-section>
+            <q-color v-model="color" style="min-width:250px" />
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn
+              label="确 定"
+              class="q-px-xl"
+              v-close-popup
+              @click="chooseColor"
+            />
+          </q-card-actions>
+          <div style="margin-top:10px"></div>
+        </q-card>
+      </q-dialog>
+    </div>
+    <div class="q-pa-md text-center">
       <q-btn
         outline
         color="primary"
@@ -87,9 +122,7 @@
 
             <q-item-section>
               <q-item-label lines="1">{{ item.user.name }}</q-item-label>
-              <q-item-label caption>
-                {{ item.details }}
-              </q-item-label>
+              <q-item-label caption v-html="item.details"> </q-item-label>
             </q-item-section>
 
             <q-item-section side top>
@@ -172,6 +205,8 @@ export default {
       comment: {
         details: ""
       },
+      color: "",
+      dialogColor: false,
 
       work: {
         user: {
@@ -333,7 +368,7 @@ export default {
       }
     },
     async submitComment() {
-      if (this.$refs.commentEditor.validate()) {
+      if (this.$refs.commentEditorField.validate()) {
         var data = await dbWorkComments.createWorkComment({
           workId: this.$route.params.id,
           userId: JSON.parse(localStorage.getItem("user")).id,
@@ -351,7 +386,7 @@ export default {
           this.pageNum = 1;
           this.comment.details = "";
           setTimeout(() => {
-            this.$refs.commentEditor.resetValidation();
+            this.$refs.commentEditorField.resetValidation();
           }, 10);
         }
       }
@@ -375,6 +410,12 @@ export default {
           }
         }
       }, 50);
+    },
+    chooseColor() {
+      const edit = this.$refs.commentEditor;
+      edit.caret.restore();
+      edit.runCmd("foreColor", this.color);
+      edit.focus();
     }
   }
 };
