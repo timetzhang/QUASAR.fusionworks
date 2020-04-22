@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="text-h5" style="margin-bottom:10px">
-      <q-icon name="offline_pin" size="31px"> </q-icon> 已经终止的作业
+      <q-icon name="offline_pin" size="31px"> </q-icon> 已结束的作业
       <q-badge align="middle" color="red">{{ assignments.length }}</q-badge>
     </div>
     <div class="text-subtitle2" style="line-height: 2.3rem;">按科目过滤:</div>

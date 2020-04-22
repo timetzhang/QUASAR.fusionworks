@@ -5,7 +5,7 @@
         <q-toolbar flat>
           <q-btn flat round icon="menu" @click="left = !left" />
           <q-toolbar-title style="font-size: 15px">
-            师大美院作业系统
+            师大美院
           </q-toolbar-title>
           <q-space />
           <q-btn
@@ -64,9 +64,8 @@
               v-if="user.usertype.id == 1"
             >
               <q-item-section avatar>
-                <q-icon name="assignment_later" />
+                <q-icon name="assignment" />
               </q-item-section>
-
               <q-item-section>需要完成的作业</q-item-section>
               <q-item-section side>
                 <q-badge align="middle" color="red">
