@@ -9,7 +9,7 @@
         </q-badge>
       </div>
       <div class="text-subtitle" style="line-height: 2.3rem">
-        按科目过滤:
+        按课程过滤:
       </div>
       <q-tabs
         class="text-black bg-grey-2"
